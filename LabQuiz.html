@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LabQuiz — Physique · Chimie · Collège</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;800;900&family=Space+Mono:wght@400;700&family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{background:#050c1a}
+:root{--bg:#050c1a;--card:#0c1c35;--card2:#101e35;--b:rgba(0,170,255,.12);--green:#00ff88;--cyan:#00ccff;--red:#ff3355;--t:#bcd4f5;--t2:#4a78a8}
+.lab{min-height:100vh;background:radial-gradient(ellipse at 50% 0%,rgba(0,90,255,.09) 0%,transparent 55%),repeating-linear-gradient(0deg,transparent,transparent 49px,rgba(0,140,255,.036) 50px),repeating-linear-gradient(90deg,transparent,transparent 49px,rgba(0,140,255,.036) 50px),#050c1a;font-family:'Rajdhani',sans-serif;color:var(--t);display:flex;flex-direction:column;align-items:center;padding:24px 16px 60px}
+.home{max-width:780px;width:100%;padding-top:28px}
+.logo-wrap{text-align:center;margin-bottom:44px}
+.logo{font-family:'Orbitron',monospace;font-size:clamp(2rem,7vw,3.5rem);font-weight:900;background:linear-gradient(160deg,#fff 10%,var(--cyan) 55%,var(--green));-webkit-background-clip:text;-webkit-text-fill-color:transparent;letter-spacing:.05em;display:block;margin-bottom:4px}
+.logo-sub{font-size:.72rem;letter-spacing:.28em;text-transform:uppercase;color:var(--t2)}
+.sect{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.slbl{font-family:'Orbitron',monospace;font-size:.58rem;letter-spacing:.22em;text-transform:uppercase;white-space:nowrap}
+.slbl.phy{color:var(--green)}.slbl.chi{color:var(--cyan)}
+.sline{flex:1;height:1px;background:var(--b)}
+.hcard{background:var(--card);border:1px solid var(--b);border-radius:16px;padding:22px 20px;cursor:pointer;transition:transform .16s,border-color .16s,box-shadow .16s;text-align:left;margin-bottom:14px}
+.hcard:hover{transform:translateY(-3px);box-shadow:0 10px 36px rgba(0,80,255,.14)}
+.hcard.phy:hover{border-color:rgba(0,255,136,.32)}
+.hcard.chi:hover{border-color:rgba(0,200,255,.32)}
+.hcard-icon{font-size:1.8rem;margin-bottom:10px;display:block}
+.hcard-title{font-family:'Orbitron',monospace;font-size:.8rem;font-weight:600;color:#fff;margin-bottom:5px}
+.hcard-desc{font-size:.82rem;color:var(--t2);line-height:1.6}
+.hcard-pills{display:flex;flex-wrap:wrap;gap:5px;margin-top:10px}
+.pill{font-size:.62rem;padding:2px 8px;border-radius:20px;font-weight:700;letter-spacing:.04em}
+.pill-g{background:rgba(0,255,136,.09);color:var(--green);border:1px solid rgba(0,255,136,.18)}
+.pill-c{background:rgba(0,200,255,.09);color:var(--cyan);border:1px solid rgba(0,200,255,.18)}
+.pill-p{background:rgba(168,85,247,.09);color:#c084fc;border:1px solid rgba(168,85,247,.2)}
+.game{max-width:640px;width:100%}
+.gbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:8px}
+.gbtn{background:transparent;border:1px solid var(--b);border-radius:8px;color:var(--t2);padding:6px 14px;cursor:pointer;font-family:'Rajdhani',sans-serif;font-size:.82rem;transition:all .16s}
+.gbtn:hover{border-color:rgba(0,200,255,.4);color:var(--cyan)}
+.gmod{font-family:'Orbitron',monospace;font-size:.62rem;color:var(--t2);letter-spacing:.1em;text-transform:uppercase;text-align:center;flex:1;margin:0 8px}
+.gsc{font-family:'Space Mono',monospace;font-size:.9rem;color:var(--green);white-space:nowrap}
+.pbar{height:3px;background:rgba(255,255,255,.06);border-radius:2px;margin-bottom:24px;overflow:hidden}
+.pfill{height:100%;background:linear-gradient(90deg,var(--cyan),var(--green));border-radius:2px;transition:width .45s ease}
+.qcard{background:var(--card);border:1px solid var(--b);border-radius:18px;padding:28px 24px;margin-bottom:16px;position:relative;overflow:hidden;animation:fIn .22s ease}
+.qcard::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent 5%,var(--cyan) 40%,var(--green) 60%,transparent 95%)}
+.qnum{font-size:.68rem;letter-spacing:.15em;text-transform:uppercase;color:var(--t2);margin-bottom:12px}
+.qtext{font-family:'Space Mono',monospace;font-size:clamp(.88rem,2.6vw,1.18rem);color:#fff;line-height:1.5}
+.qblank{color:var(--cyan)}
+.choices{display:grid;gap:9px;animation:fIn .28s ease .06s both}
+.c4{grid-template-columns:1fr 1fr}
+.cbtn{background:var(--card2);border:1px solid var(--b);border-radius:11px;padding:13px 10px;cursor:pointer;transition:all .12s;font-family:'Space Mono',monospace;font-size:.85rem;color:var(--t);text-align:center}
+.cbtn:hover:not(:disabled){transform:scale(1.02);border-color:rgba(0,200,255,.5);color:#fff;background:#152045}
+.cbtn.ok{background:rgba(0,255,136,.1)!important;border-color:var(--green)!important;color:var(--green)!important;box-shadow:0 0 14px rgba(0,255,136,.18)}
+.cbtn.bad{background:rgba(255,51,85,.09)!important;border-color:var(--red)!important;color:var(--red)!important;box-shadow:0 0 14px rgba(255,51,85,.15)}
+.cbtn:disabled{cursor:default;transform:none!important}
+.fb{border-radius:11px;padding:13px 16px;margin-top:12px;font-size:.86rem;line-height:1.65;animation:fIn .22s ease}
+.fb-ok{background:rgba(0,255,136,.06);border-left:3px solid var(--green)}
+.fb-bad{background:rgba(255,51,85,.06);border-left:3px solid var(--red)}
+.fbhd{font-weight:700;margin-bottom:3px}
+.fb-ok .fbhd{color:var(--green)}.fb-bad .fbhd{color:var(--red)}
+.nxt{width:100%;background:linear-gradient(135deg,var(--cyan),var(--green));border:none;border-radius:11px;padding:14px;cursor:pointer;font-family:'Orbitron',monospace;font-size:.78rem;font-weight:700;color:#001a0a;letter-spacing:.06em;transition:all .16s;margin-top:10px}
+.nxt:hover{box-shadow:0 0 26px rgba(0,210,255,.3);transform:scale(1.01)}
+.chilab{max-width:700px;width:100%}
+.chilab-bar{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px}
+.chilab-title{font-family:'Orbitron',monospace;font-size:.68rem;color:var(--t2);letter-spacing:.1em;text-transform:uppercase;text-align:center;flex:1;margin:0 8px}
+.chilab-score{font-family:'Space Mono',monospace;font-size:.9rem;color:var(--green)}
+.shelf-lbl{font-size:.72rem;color:var(--t2);letter-spacing:.12em;text-transform:uppercase;margin-bottom:10px;font-family:'Orbitron',monospace}
+.bottles{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:16px}
+.bottle{background:var(--card);border:1px solid var(--b);border-radius:12px;padding:11px 7px;cursor:pointer;transition:all .15s;text-align:center;position:relative;user-select:none}
+.bottle:hover:not(.dis){transform:scale(1.06);border-color:rgba(0,200,255,.5)}
+.bottle.sel{border-color:var(--cyan);background:rgba(0,200,255,.1);box-shadow:0 0 12px rgba(0,200,255,.2)}
+.bottle.dis{opacity:.3;cursor:default}
+.bottle-em{font-size:1.7rem;display:block;margin-bottom:4px}
+.bottle-nm{font-size:.65rem;color:var(--t);line-height:1.2}
+.bottle-badge{position:absolute;top:4px;right:5px;font-size:.6rem;color:var(--cyan);font-weight:700;font-family:'Space Mono',monospace}
+.mix-btn{width:100%;background:linear-gradient(135deg,var(--cyan),var(--green));border:none;border-radius:12px;padding:15px;cursor:pointer;font-family:'Orbitron',monospace;font-size:.82rem;font-weight:700;color:#001a0a;letter-spacing:.08em;transition:all .16s;margin-bottom:20px;animation:fIn .2s ease}
+.mix-btn:hover{box-shadow:0 0 28px rgba(0,210,255,.3);transform:scale(1.01)}
+.exp-zone{background:var(--card);border:1px solid var(--b);border-radius:20px;padding:26px 22px;position:relative;overflow:hidden;animation:fIn .22s ease}
+.exp-zone::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent 5%,var(--cyan) 40%,var(--green) 60%,transparent 95%)}
+.beaker-area{display:flex;align-items:flex-end;justify-content:center;gap:28px;margin-bottom:22px}
+.beaker-wrap{display:flex;flex-direction:column;align-items:center;gap:8px}
+.beaker{width:88px;height:136px;border:2.5px solid rgba(0,200,255,.55);border-top:none;border-radius:0 0 18px 18px;position:relative;overflow:hidden;background:rgba(0,200,255,.02);box-shadow:inset 0 0 18px rgba(0,200,255,.06)}
+.beaker::before{content:'';position:absolute;top:-10px;left:-7px;right:-7px;height:10px;border:2.5px solid rgba(0,200,255,.55);border-bottom:none;border-radius:4px 4px 0 0}
+.bl{position:absolute;left:0;right:0}
+.bl-bot{bottom:0;animation:fillBot .7s ease-out both}
+.bl-top{animation:fillTop .9s ease-out .35s both;height:0}
+.bl-single{bottom:0;animation:fillUp .8s ease-out both}
+.bl-sep{position:absolute;left:0;right:0;height:1.5px;background:rgba(255,255,255,.25)}
+.b-bubble{position:absolute;border-radius:50%;background:rgba(255,255,255,.45);animation:bubble var(--d,1.2s) ease-in var(--delay,0s) infinite}
+.beaker-lbl{font-family:'Space Mono',monospace;font-size:.68rem;color:var(--t2);text-align:center;max-width:90px;line-height:1.4}
+.btag{display:inline-block;font-size:.6rem;padding:2px 7px;border-radius:10px;font-weight:700;margin-top:3px}
+.btag-m{background:rgba(0,255,136,.12);color:var(--green);border:1px solid rgba(0,255,136,.2)}
+.btag-nm{background:rgba(255,51,85,.1);color:var(--red);border:1px solid rgba(255,51,85,.2)}
+.chi-q{margin-top:4px}
+.chi-qlbl{font-size:.75rem;color:var(--cyan);letter-spacing:.1em;text-transform:uppercase;font-family:'Orbitron',monospace;margin-bottom:10px}
+.chi-opts{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.chi-obtn{background:var(--card2);border:1px solid var(--b);border-radius:12px;padding:20px 12px;cursor:pointer;transition:all .13s;font-family:'Space Mono',monospace;font-size:.9rem;color:var(--t);text-align:center}
+.chi-obtn:hover:not(:disabled){transform:scale(1.03);border-color:rgba(0,200,255,.5);color:#fff}
+.chi-obtn.ok{background:rgba(0,255,136,.1);border-color:var(--green);color:var(--green);box-shadow:0 0 14px rgba(0,255,136,.15)}
+.chi-obtn.bad{background:rgba(255,51,85,.09);border-color:var(--red);color:var(--red);box-shadow:0 0 14px rgba(255,51,85,.15)}
+.chi-obtn:disabled{cursor:default;transform:none}
+.chi-fb{border-radius:10px;padding:12px 15px;margin-top:10px;font-size:.84rem;line-height:1.65;animation:fIn .2s ease}
+.chi-fb.ok{background:rgba(0,255,136,.06);border-left:3px solid var(--green)}
+.chi-fb.bad{background:rgba(255,51,85,.06);border-left:3px solid var(--red)}
+.chi-fhd{font-weight:700;margin-bottom:3px}
+.chi-fb.ok .chi-fhd{color:var(--green)}.chi-fb.bad .chi-fhd{color:var(--red)}
+.chi-next{width:100%;margin-top:12px;border:none;border-radius:11px;padding:13px;cursor:pointer;font-family:'Orbitron',monospace;font-size:.76rem;font-weight:700;letter-spacing:.06em;transition:all .16s}
+.chi-next.primary{background:linear-gradient(135deg,var(--cyan),var(--green));color:#001a0a}
+.chi-next.primary:hover{box-shadow:0 0 24px rgba(0,210,255,.3);transform:scale(1.01)}
+.chi-next.secondary{background:var(--card2);color:var(--cyan);border:1px solid var(--b)}
+.chi-next.secondary:hover{border-color:var(--cyan);transform:scale(1.01)}
+@keyframes shake{0%,100%{transform:rotate(0)}20%{transform:rotate(-4deg)}40%{transform:rotate(4deg)}60%{transform:rotate(-3deg)}80%{transform:rotate(3deg)}}
+.shaking{animation:shake .55s ease 3}
+.result{max-width:520px;width:100%;text-align:center;padding-top:40px}
+.rico{font-size:5rem;margin-bottom:14px;animation:pop .5s ease}
+.rtitle{font-family:'Orbitron',monospace;font-size:clamp(1.2rem,4vw,1.9rem);font-weight:800;color:#fff;margin-bottom:14px}
+.rscore{font-family:'Space Mono',monospace;font-size:3.2rem;font-weight:700;color:var(--green);text-shadow:0 0 28px rgba(0,255,136,.35);line-height:1}
+.rtotal{color:var(--t2);margin-bottom:10px;font-size:.86rem}
+.rstars{font-size:2rem;letter-spacing:.4em;margin-bottom:18px}
+.rmsg{color:var(--t);font-size:.9rem;line-height:1.8;margin-bottom:30px;background:var(--card);border:1px solid var(--b);border-radius:13px;padding:16px 20px}
+.rbtns{display:flex;gap:11px;justify-content:center;flex-wrap:wrap}
+.br{background:var(--card2);border:1px solid var(--b);border-radius:11px;padding:12px 22px;cursor:pointer;font-family:'Orbitron',monospace;font-size:.72rem;color:var(--cyan);transition:all .16s}
+.br:hover{border-color:var(--cyan);transform:scale(1.03)}
+.bh{background:linear-gradient(135deg,var(--cyan),var(--green));border:none;border-radius:11px;padding:12px 22px;cursor:pointer;font-family:'Orbitron',monospace;font-size:.72rem;color:#001a0a;font-weight:700;transition:all .16s}
+.bh:hover{transform:scale(1.03);box-shadow:0 0 18px rgba(0,200,255,.28)}
+@keyframes fIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+@keyframes pop{0%,100%{transform:scale(1)}45%{transform:scale(1.22)}}
+@keyframes fillUp{from{height:0}to{height:82%}}
+@keyframes fillBot{from{height:0}to{height:46%}}
+@keyframes fillTop{from{height:0}to{height:40%}}
+@keyframes bubble{0%{transform:translateY(0);opacity:.45}100%{transform:translateY(-70px);opacity:0}}
+@media(max-width:500px){.c4{grid-template-columns:1fr}.bottles{grid-template-columns:repeat(4,1fr);gap:5px}.bottle{padding:9px 4px}.bottle-em{font-size:1.4rem}.bottle-nm{font-size:.58rem}}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script>
+// ─── CONSTANTS ──────────────────────────────────────────
+const CHIM_ROUNDS = 6;
+
+// ─── DATA ───────────────────────────────────────────────
+const CONV = [
+  {q:"3 km = ___ m",      a:"3 000", ch:["300","3 000","30 000","0,003"],  ex:"1 km = 1 000 m  \u2192  3 \u00d7 1 000 = 3 000 m"},
+  {q:"500 cm = ___ m",    a:"5",     ch:["0,5","5","50","5 000"],          ex:"1 m = 100 cm  \u2192  500 \u00f7 100 = 5 m"},
+  {q:"2,5 L = ___ mL",    a:"2 500", ch:["25","250","2 500","25 000"],     ex:"1 L = 1 000 mL  \u2192  2,5 \u00d7 1 000 = 2 500 mL"},
+  {q:"1,5 kg = ___ g",    a:"1 500", ch:["15","150","1 500","15 000"],     ex:"1 kg = 1 000 g  \u2192  1,5 \u00d7 1 000 = 1 500 g"},
+  {q:"0,5 m = ___ cm",    a:"50",    ch:["5","50","500","0,05"],           ex:"1 m = 100 cm  \u2192  0,5 \u00d7 100 = 50 cm"},
+  {q:"2 000 g = ___ kg",  a:"2",     ch:["0,2","2","20","200"],            ex:"1 kg = 1 000 g  \u2192  2 000 \u00f7 1 000 = 2 kg"},
+  {q:"1 m\u00b3 = ___ L", a:"1 000", ch:["10","100","1 000","10 000"],     ex:"Relation fondamentale : 1 m\u00b3 = 1 000 L"},
+  {q:"750 mL = ___ L",    a:"0,75",  ch:["0,075","0,75","7,5","75"],       ex:"1 L = 1 000 mL  \u2192  750 \u00f7 1 000 = 0,75 L"},
+  {q:"4,5 cm = ___ mm",   a:"45",    ch:["0,45","4,5","45","450"],         ex:"1 cm = 10 mm  \u2192  4,5 \u00d7 10 = 45 mm"},
+  {q:"1 t = ___ kg",      a:"1 000", ch:["10","100","1 000","10 000"],     ex:"1 tonne = 1 000 kg"},
+  {q:"250 cL = ___ L",    a:"2,5",   ch:["0,25","2,5","25","2 500"],       ex:"1 L = 100 cL  \u2192  250 \u00f7 100 = 2,5 L"},
+  {q:"0,002 km = ___ m",  a:"2",     ch:["0,2","2","20","200"],            ex:"1 km = 1 000 m  \u2192  0,002 \u00d7 1 000 = 2 m"},
+  {q:"3 000 mm = ___ m",  a:"3",     ch:["0,03","0,3","3","300"],          ex:"1 m = 1 000 mm  \u2192  3 000 \u00f7 1 000 = 3 m"},
+  {q:"0,5 L = ___ cL",    a:"50",    ch:["0,05","5","50","500"],           ex:"1 L = 100 cL  \u2192  0,5 \u00d7 100 = 50 cL"},
+  {q:"2 dm\u00b3 = ___ L",a:"2",     ch:["0,02","0,2","2","200"],          ex:"1 dm\u00b3 = 1 L  \u2192  2 dm\u00b3 = 2 L"},
+];
+
+const LIQUIDS = [
+  {id:"eau",      nm:"Eau",      em:"\uD83D\uDCA7", col:"#4da6ff", den:1.00, pol:true },
+  {id:"huile",    nm:"Huile",    em:"\uD83E\uDEB9", col:"#f5c520", den:0.92, pol:false},
+  {id:"alcool",   nm:"Alcool",   em:"\uD83C\uDF7E", col:"#cce8ff", den:0.79, pol:true },
+  {id:"sirop",    nm:"Sirop",    em:"\uD83C\uDF53", col:"#ff3060", den:1.30, pol:true },
+  {id:"essence",  nm:"Essence",  em:"\u26FD",        col:"#ffaa00", den:0.74, pol:false},
+  {id:"lait",     nm:"Lait",     em:"\uD83E\uDD5B", col:"#f8f8f0", den:1.03, pol:true,  emu:true},
+  {id:"vinaigre", nm:"Vinaigre", em:"\uD83E\uDD52", col:"#ccee66", den:1.01, pol:true },
+  {id:"encre",    nm:"Encre",    em:"\u2712\uFE0F",  col:"#2244cc", den:1.00, pol:true },
+];
+
+const LM = Object.fromEntries(LIQUIDS.map(l => [l.id, l]));
+
+const MX = {
+  "eau+huile":       {m:false,h:false,xm:"L\u2019eau (polaire) et l\u2019huile (apolaire) ne se m\u00e9langent pas.",xh:"Deux couches distinctes visibles \u2192 h\u00e9t\u00e9rog\u00e8ne."},
+  "eau+alcool":      {m:true, h:true, xm:"L\u2019eau et l\u2019alcool sont miscibles en toutes proportions.",xh:"Aspect uniforme partout \u2192 homog\u00e8ne."},
+  "eau+sirop":       {m:true, h:true, xm:"Le sirop se dissout totalement dans l\u2019eau.",xh:"Aspect uniforme \u2192 homog\u00e8ne."},
+  "eau+essence":     {m:false,h:false,xm:"L\u2019eau (polaire) et l\u2019essence (apolaire) ne se m\u00e9langent pas.",xh:"Deux couches distinctes \u2192 h\u00e9t\u00e9rog\u00e8ne."},
+  "eau+lait":        {m:true, h:false,xm:"Le lait se m\u00e9lange \u00e0 l\u2019eau (miscibles).",xh:"Le lait est une \u00e9mulsion (globules gras en suspension) \u2192 h\u00e9t\u00e9rog\u00e8ne."},
+  "eau+vinaigre":    {m:true, h:true, xm:"Le vinaigre (acide ac\u00e9tique + eau) est miscible \u00e0 l\u2019eau.",xh:"Aspect uniforme \u2192 homog\u00e8ne."},
+  "eau+encre":       {m:true, h:true, xm:"L\u2019encre se dissout dans l\u2019eau.",xh:"M\u00e9lange color\u00e9 uniforme \u2192 homog\u00e8ne."},
+  "huile+essence":   {m:true, h:true, xm:"Deux liquides apolaires : miscibles en toutes proportions.",xh:"Aspect uniforme \u2192 homog\u00e8ne."},
+  "huile+alcool":    {m:false,h:false,xm:"L\u2019huile (apolaire) et l\u2019alcool (polaire) ne sont pas miscibles.",xh:"Deux couches distinctes \u2192 h\u00e9t\u00e9rog\u00e8ne."},
+  "huile+vinaigre":  {m:false,h:false,xm:"L\u2019huile et le vinaigre ne se m\u00e9langent pas : c\u2019est la vinaigrette\u00a0!",xh:"Deux phases visibles \u2192 h\u00e9t\u00e9rog\u00e8ne."},
+  "huile+sirop":     {m:false,h:false,xm:"L\u2019huile et le sirop ne se m\u00e9langent pas.",xh:"Deux couches \u2192 h\u00e9t\u00e9rog\u00e8ne."},
+  "huile+lait":      {m:false,h:false,xm:"L\u2019huile et le lait ne se m\u00e9langent pas vraiment.",xh:"Plusieurs phases visibles \u2192 h\u00e9t\u00e9rog\u00e8ne."},
+  "alcool+sirop":    {m:true, h:true, xm:"L\u2019alcool et le sirop se m\u00e9langent.",xh:"Aspect uniforme \u2192 homog\u00e8ne."},
+  "alcool+vinaigre": {m:true, h:true, xm:"L\u2019alcool et le vinaigre se m\u00e9langent.",xh:"Aspect uniforme \u2192 homog\u00e8ne."},
+  "alcool+encre":    {m:true, h:true, xm:"L\u2019encre et l\u2019alcool se m\u00e9langent.",xh:"Aspect color\u00e9 uniforme \u2192 homog\u00e8ne."},
+  "alcool+essence":  {m:true, h:true, xm:"L\u2019alcool et l\u2019essence se m\u00e9langent.",xh:"Aspect uniforme \u2192 homog\u00e8ne."},
+  "alcool+lait":     {m:true, h:false,xm:"L\u2019alcool et le lait se m\u00e9langent.",xh:"Le lait est une \u00e9mulsion \u2192 h\u00e9t\u00e9rog\u00e8ne."},
+  "sirop+vinaigre":  {m:true, h:true, xm:"Le sirop et le vinaigre se m\u00e9langent.",xh:"Aspect uniforme \u2192 homog\u00e8ne."},
+  "sirop+encre":     {m:true, h:true, xm:"Le sirop et l\u2019encre se m\u00e9langent.",xh:"Aspect color\u00e9 uniforme \u2192 homog\u00e8ne."},
+  "sirop+lait":      {m:true, h:false,xm:"Le sirop et le lait se m\u00e9langent.",xh:"Le lait est une \u00e9mulsion \u2192 h\u00e9t\u00e9rog\u00e8ne."},
+  "essence+lait":    {m:false,h:false,xm:"L\u2019essence et le lait ne se m\u00e9langent pas.",xh:"Plusieurs phases \u2192 h\u00e9t\u00e9rog\u00e8ne."},
+  "essence+vinaigre":{m:false,h:false,xm:"L\u2019essence (apolaire) et le vinaigre (polaire) ne se m\u00e9langent pas.",xh:"Deux couches \u2192 h\u00e9t\u00e9rog\u00e8ne."},
+  "essence+encre":   {m:false,h:false,xm:"L\u2019essence (apolaire) et l\u2019encre (polaire) ne se m\u00e9langent pas.",xh:"Deux couches \u2192 h\u00e9t\u00e9rog\u00e8ne."},
+  "vinaigre+lait":   {m:true, h:false,xm:"Le vinaigre et le lait se m\u00e9langent (le vinaigre fait m\u00eame cailler le lait\u00a0!).",xh:"Pr\u00e9sence de particules \u2192 h\u00e9t\u00e9rog\u00e8ne."},
+  "vinaigre+encre":  {m:true, h:true, xm:"Le vinaigre et l\u2019encre se m\u00e9langent.",xh:"Aspect uniforme \u2192 homog\u00e8ne."},
+  "lait+encre":      {m:true, h:false,xm:"L\u2019encre et le lait se m\u00e9langent.",xh:"Le lait est une \u00e9mulsion \u2192 h\u00e9t\u00e9rog\u00e8ne."},
+  "encre+essence":   {m:false,h:false,xm:"L\u2019encre (polaire) et l\u2019essence (apolaire) ne se m\u00e9langent pas.",xh:"Deux couches \u2192 h\u00e9t\u00e9rog\u00e8ne."},
+};
+
+// ─── UTILS ──────────────────────────────────────────────
+function getMix(a, b) {
+  const k = [a, b].sort().join("+");
+  if (MX[k]) return MX[k];
+  const l1 = LM[a], l2 = LM[b];
+  const m = l1.pol === l2.pol, h = m && !l1.emu && !l2.emu;
+  return {
+    m, h,
+    xm: m ? "Ces liquides ont des propri\u00e9t\u00e9s similaires\u00a0: ils se m\u00e9langent." : "Ces liquides ont des polarit\u00e9s diff\u00e9rentes\u00a0: ils ne se m\u00e9langent pas.",
+    xh: h ? "Aspect uniforme \u2192 homog\u00e8ne." : m ? "Particules en suspension \u2192 h\u00e9t\u00e9rog\u00e8ne." : "Deux phases distinctes \u2192 h\u00e9t\u00e9rog\u00e8ne."
+  };
+}
+
+function blendHex(c1, c2) {
+  const p = (h, s, e) => parseInt(h.slice(s, e), 16);
+  return `rgb(${Math.round((p(c1,1,3)+p(c2,1,3))/2)},${Math.round((p(c1,3,5)+p(c2,3,5))/2)},${Math.round((p(c1,5,7)+p(c2,5,7))/2)})`;
+}
+
+function shuffle(arr) { return [...arr].sort(() => Math.random() - .5); }
+
+function stars(s, t) { return s/t >= .9 ? "\u2B50\u2B50\u2B50" : s/t >= .6 ? "\u2B50\u2B50" : "\u2B50"; }
+
+function msg(s, t) {
+  const p = s / t;
+  if (p === 1)  return "\uD83C\uDFC6 Score parfait\u00a0! Tu ma\u00eetrises toutes les propri\u00e9t\u00e9s des m\u00e9langes\u00a0!";
+  if (p >= .8)  return "\uD83E\uDD7C Tr\u00e8s bien\u00a0! Excellente ma\u00eetrise. Quelques r\u00e9visions et tu seras \u00e0 100\u00a0%\u00a0!";
+  if (p >= .6)  return "\uD83D\uDD2C Bien jou\u00e9\u00a0! Bonnes bases. Relis quelques d\u00e9finitions et retente.";
+  if (p >= .4)  return "\uD83D\uDCD6 Continue\u00a0! Revois les notions de miscibilit\u00e9 et d\u2019homog\u00e9n\u00e9it\u00e9.";
+  return "\uD83D\uDCDA Revois ton cours sur les m\u00e9langes et recommence. Tu peux le faire\u00a0!";
+}
+
+// ─── STATE ──────────────────────────────────────────────
+const state = {
+  screen: "home",
+  phyQs: [], phyIdx: 0, phyScore: 0, phyChosen: null, phyDone: false,
+  chimPhase: "select", chimRound: 1, chimScore: 0, chimSel: [],
+  chimMix: null, chimAnimating: false, chimQNum: 1,
+  chimA1: null, chimA2: null, chimDone: false,
+};
+
+// ─── ACTIONS ────────────────────────────────────────────
+function goHome() { state.screen = "home"; render(); }
+
+function goPhysique() {
+  Object.assign(state, {screen:"physique", phyQs:shuffle(CONV).slice(0,12),
+    phyIdx:0, phyScore:0, phyChosen:null, phyDone:false});
+  render();
+}
+
+function goChimie() {
+  Object.assign(state, {screen:"chimie", chimPhase:"select", chimRound:1,
+    chimScore:0, chimSel:[], chimMix:null, chimAnimating:false,
+    chimQNum:1, chimA1:null, chimA2:null, chimDone:false});
+  render();
+}
+
+function phyChoose(c) {
+  if (state.phyChosen) return;
+  state.phyChosen = c;
+  if (c === state.phyQs[state.phyIdx].a) state.phyScore++;
+  render();
+}
+
+function phyNext() {
+  if (state.phyIdx + 1 >= state.phyQs.length) state.phyDone = true;
+  else { state.phyIdx++; state.phyChosen = null; }
+  render();
+}
+
+function phyRestart() {
+  Object.assign(state, {phyQs:shuffle(CONV).slice(0,12),
+    phyIdx:0, phyScore:0, phyChosen:null, phyDone:false});
+  render();
+}
+
+function chimToggleSel(id) {
+  if (state.chimSel.includes(id)) state.chimSel = state.chimSel.filter(x => x !== id);
+  else if (state.chimSel.length < 2) state.chimSel = [...state.chimSel, id];
+  render();
+}
+
+function chimDoMix() {
+  Object.assign(state, {
+    chimMix: getMix(state.chimSel[0], state.chimSel[1]),
+    chimA1: null, chimA2: null, chimQNum: 1,
+    chimAnimating: true, chimPhase: "mixing"
+  });
+  render();
+  setTimeout(() => {
+    if (state.screen === "chimie" && state.chimPhase === "mixing") {
+      state.chimAnimating = false;
+      state.chimPhase = "quiz";
+      render();
+    }
+  }, 2400);
+}
+
+function chimAnswer(q, val) {
+  if (q === 1) {
+    if (state.chimA1 !== null) return;
+    state.chimA1 = val;
+    if ((val === "Miscible") === state.chimMix.m) state.chimScore++;
+  } else {
+    if (state.chimA2 !== null) return;
+    state.chimA2 = val;
+    if ((val === "Homog\u00e8ne") === state.chimMix.h) state.chimScore++;
+  }
+  render();
+}
+
+function chimGoNextQ() { state.chimQNum = 2; render(); }
+
+function chimGoNextRound() {
+  if (state.chimRound >= CHIM_ROUNDS) { state.chimDone = true; render(); return; }
+  state.chimRound++;
+  state.chimSel = [];
+  state.chimPhase = "select";
+  render();
+}
+
+function chimRestart() {
+  Object.assign(state, {chimRound:1, chimScore:0, chimSel:[], chimPhase:"select", chimDone:false});
+  render();
+}
+
+// ─── BEAKER HELPER ──────────────────────────────────────
+function beakerHtml(id1, id2, mix, anim) {
+  const l1 = LM[id1], l2 = LM[id2];
+  const bot = l1.den >= l2.den ? l1 : l2;
+  const top = bot.id === l1.id ? l2 : l1;
+  const blended = blendHex(l1.col, l2.col);
+
+  let liq = "";
+  if (anim) {
+    liq = `<div class="bl bl-single" style="background:linear-gradient(135deg,${l1.col},${l2.col});opacity:.6"></div>`;
+  } else if (mix.m) {
+    const bubbles = [0,1,2].map(i =>
+      `<div class="b-bubble" style="width:${4+i*2}px;height:${4+i*2}px;left:${18+i*28}%;bottom:${8+i*10}%;--d:${1+i*.4}s;--delay:${i*.35}s"></div>`
+    ).join("");
+    liq = `<div class="bl bl-single" style="background:${blended};opacity:.88"></div>${bubbles}`;
+  } else {
+    liq = `<div class="bl bl-bot" style="background:${bot.col};opacity:.9"></div>`
+        + `<div class="bl bl-top" style="background:${top.col};opacity:.85;bottom:46%"></div>`
+        + `<div class="bl-sep" style="bottom:46%"></div>`;
+  }
+
+  const lbl = anim
+    ? `<div class="beaker-lbl" style="color:var(--cyan)">\u2697\uFE0F Agitation\u2026</div>`
+    : mix.m
+      ? `<div class="beaker-lbl"><span style="color:var(--t)">${l1.nm} + ${l2.nm}</span><br><span class="btag btag-m">Miscible \u2713</span></div>`
+      : `<div class="beaker-lbl"><span style="display:block;color:var(--t);font-size:.6rem">${top.nm} \u2191</span><span style="display:block;color:var(--t);font-size:.6rem">${bot.nm} \u2193</span><span class="btag btag-nm">Non-miscible</span></div>`;
+
+  return `<div class="beaker-wrap"><div class="beaker${anim ? " shaking" : ""}">${liq}</div>${lbl}</div>`;
+}
+
+// ─── SCREENS ────────────────────────────────────────────
+function htmlHome() {
+  return `<div class="lab"><div class="home">
+    <div class="logo-wrap">
+      <span class="logo">LABQUIZ</span>
+      <span class="logo-sub">Physique \u00b7 Chimie \u00b7 Coll\u00e8ge</span>
+    </div>
+    <div class="sect"><span class="slbl phy">\u26a1 Physique</span><span class="sline"></span></div>
+    <div class="hcard phy" id="go-phy">
+      <span class="hcard-icon">\u2697\uFE0F</span>
+      <div class="hcard-title">Conversions d\u2019unit\u00e9s</div>
+      <div class="hcard-desc">km \u00b7 m \u00b7 cm \u00b7 mm &nbsp;|&nbsp; kg \u00b7 g \u00b7 t &nbsp;|&nbsp; m\u00b3 \u00b7 L \u00b7 dL \u00b7 cL \u00b7 mL</div>
+      <div class="hcard-pills"><span class="pill pill-g">12 questions</span><span class="pill pill-g">QCM</span></div>
+    </div>
+    <div class="sect"><span class="slbl chi">\uD83E\uDDEA Chimie</span><span class="sline"></span></div>
+    <div class="hcard chi" id="go-chi">
+      <span class="hcard-icon">\uD83D\uDD2C</span>
+      <div class="hcard-title">Labo des M\u00e9langes \u2014 Interactif</div>
+      <div class="hcard-desc">S\u00e9lectionne 2 liquides dans la biblioth\u00e8que, m\u00e9lange-les dans un b\u00e9cher et observe le r\u00e9sultat\u00a0! R\u00e9ponds ensuite aux questions.</div>
+      <div class="hcard-pills"><span class="pill pill-c">6 m\u00e9langes</span><span class="pill pill-c">8 liquides</span><span class="pill pill-p">\u2728 Interactif</span></div>
+    </div>
+  </div></div>`;
+}
+
+function htmlPhy() {
+  const {phyQs, phyIdx, phyScore, phyChosen, phyDone} = state;
+
+  if (phyDone) {
+    const pct = Math.round(phyScore / phyQs.length * 100);
+    const icon = phyScore === phyQs.length ? "\uD83C\uDFC6" : phyScore >= phyQs.length * .7 ? "\uD83D\uDCD0" : "\uD83D\uDCDA";
+    return `<div class="lab"><div class="result">
+      <div class="rico">${icon}</div>
+      <div class="rtitle">R\u00e9sultats Physique\u00a0!</div>
+      <div class="rscore">${phyScore}/${phyQs.length}</div>
+      <div class="rtotal">${pct}\u00a0% de r\u00e9ussite</div>
+      <div class="rstars">${stars(phyScore, phyQs.length)}</div>
+      <div class="rmsg">${msg(phyScore, phyQs.length)}</div>
+      <div class="rbtns">
+        <button class="br" id="phy-restart">\u21ba Recommencer</button>
+        <button class="bh" id="phy-home-res">\u2302 Accueil</button>
+      </div>
+    </div></div>`;
+  }
+
+  const q = phyQs[phyIdx];
+  const parts = q.q.split("___");
+  const choices = q.ch.map(c => {
+    const cls = phyChosen ? (c === q.a ? " ok" : phyChosen === c ? " bad" : "") : "";
+    return `<button class="cbtn${cls}" data-c="${c}"${phyChosen ? " disabled" : ""}>${c}</button>`;
+  }).join("");
+
+  const fb = phyChosen ? `
+    <div class="fb ${phyChosen === q.a ? "fb-ok" : "fb-bad"}">
+      <div class="fbhd">${phyChosen === q.a ? "\u2713 Correct\u00a0!" : "\u2717 Mauvaise r\u00e9ponse"}</div>
+      <div>${q.ex}</div>
+    </div>
+    <button class="nxt" id="phy-next">${phyIdx + 1 >= phyQs.length ? "Voir mes r\u00e9sultats \u2192" : "Question suivante \u2192"}</button>` : "";
+
+  return `<div class="lab"><div class="game">
+    <div class="gbar">
+      <button class="gbtn" id="phy-home-top">\u2190 Accueil</button>
+      <span class="gmod">PHYSIQUE \u00b7 Conversions</span>
+      <span class="gsc">\u2726 ${phyScore}/${phyQs.length}</span>
+    </div>
+    <div class="pbar"><div class="pfill" style="width:${(phyIdx/phyQs.length)*100}%"></div></div>
+    <div class="qcard">
+      <div class="qnum">Question ${phyIdx+1} / ${phyQs.length}</div>
+      <div class="qtext">${parts[0]}<span class="qblank">___</span>${parts[1]}</div>
+    </div>
+    <div class="choices c4">${choices}</div>
+    ${fb}
+  </div></div>`;
+}
+
+function htmlChi() {
+  const {chimPhase, chimRound, chimScore, chimSel, chimMix,
+         chimAnimating, chimQNum, chimA1, chimA2, chimDone} = state;
+
+  if (chimDone) {
+    const total = CHIM_ROUNDS * 2;
+    const pct = Math.round(chimScore / total * 100);
+    const icon = chimScore === total ? "\uD83C\uDFC6" : chimScore >= total * .7 ? "\uD83E\uDDEA" : "\uD83D\uDCDA";
+    return `<div class="lab"><div class="result">
+      <div class="rico">${icon}</div>
+      <div class="rtitle">Exp\u00e9riences termin\u00e9es\u00a0!</div>
+      <div class="rscore">${chimScore}/${total}</div>
+      <div class="rtotal">${pct}\u00a0% \u2014 ${CHIM_ROUNDS} m\u00e9langes r\u00e9alis\u00e9s</div>
+      <div class="rstars">${stars(chimScore, total)}</div>
+      <div class="rmsg">${msg(chimScore, total)}</div>
+      <div class="rbtns">
+        <button class="br" id="chi-restart">\u21ba Recommencer</button>
+        <button class="bh" id="chi-home-res">\u2302 Accueil</button>
+      </div>
+    </div></div>`;
+  }
+
+  const progressPct = ((chimRound - 1) / CHIM_ROUNDS) * 100;
+  let content = "";
+
+  if (chimPhase === "select") {
+    const bottles = LIQUIDS.map(l => {
+      const isSel = chimSel.includes(l.id);
+      const isDis = chimSel.length === 2 && !isSel;
+      const num = isSel ? chimSel.indexOf(l.id) + 1 : null;
+      return `<div class="bottle${isSel?" sel":""}${isDis?" dis":""}" data-b="${l.id}">
+        ${num ? `<span class="bottle-badge">${num}</span>` : ""}
+        <span class="bottle-em">${l.em}</span>
+        <span class="bottle-nm">${l.nm}</span>
+        <div style="width:8px;height:8px;border-radius:50%;background:${l.col};margin:5px auto 0;border:1px solid rgba(255,255,255,.15)"></div>
+      </div>`;
+    }).join("");
+
+    const mixBtn = chimSel.length === 2
+      ? `<button class="mix-btn" id="chi-mix">\u2697\uFE0F M\u00e9langer\u00a0: ${LM[chimSel[0]].nm} + ${LM[chimSel[1]].nm}</button>`
+      : `<div style="text-align:center;color:var(--t2);font-size:.8rem;font-family:'Space Mono',monospace;padding:12px 0">\u2191 Clique sur 2 liquides pour les s\u00e9lectionner</div>`;
+
+    content = `
+      <div class="shelf-lbl">\uD83E\uDDEA Choisis 2 liquides \u00e0 m\u00e9langer
+        <span style="color:var(--cyan)">(${chimSel.length}/2 s\u00e9lectionn\u00e9${chimSel.length > 1 ? "s" : ""})</span>
+      </div>
+      <div class="bottles">${bottles}</div>
+      ${mixBtn}`;
+
+  } else {
+    const corr1 = chimMix.m ? "Miscible" : "Non-miscible";
+    const corr2 = chimMix.h ? "Homog\u00e8ne" : "H\u00e9t\u00e9rog\u00e8ne";
+    let qa = "";
+
+    if (chimPhase === "quiz") {
+      if (chimQNum === 1) {
+        const opts = ["Miscible", "Non-miscible"].map(o => {
+          const cls = chimA1 === null ? "" : (o === corr1 ? " ok" : chimA1 === o ? " bad" : "");
+          return `<button class="chi-obtn${cls}" data-cq="1" data-cv="${o}"${chimA1 !== null ? " disabled" : ""}>${o}</button>`;
+        }).join("");
+        qa = `<div class="chi-q">
+          <div class="chi-qlbl">\u2753 Question 1\u00a0: Ces liquides sont-ils\u2026</div>
+          <div class="chi-opts">${opts}</div>
+          ${chimA1 !== null ? `
+            <div class="chi-fb ${chimA1 === corr1 ? "ok" : "bad"}">
+              <div class="chi-fhd">${chimA1 === corr1 ? "\u2713 Correct\u00a0!" : "\u2717 Incorrect"}</div>
+              <div>${chimMix.xm}</div>
+            </div>
+            <button class="chi-next secondary" id="chi-nq">Question suivante \u2192</button>` : ""}
+        </div>`;
+      } else {
+        const opts = ["Homog\u00e8ne", "H\u00e9t\u00e9rog\u00e8ne"].map(o => {
+          const cls = chimA2 === null ? "" : (o === corr2 ? " ok" : chimA2 === o ? " bad" : "");
+          return `<button class="chi-obtn${cls}" data-cq="2" data-cv="${o}"${chimA2 !== null ? " disabled" : ""}>${o}</button>`;
+        }).join("");
+        qa = `<div class="chi-q">
+          <div class="chi-qlbl">\u2753 Question 2\u00a0: Le m\u00e9lange obtenu est-il\u2026</div>
+          <div class="chi-opts">${opts}</div>
+          ${chimA2 !== null ? `
+            <div class="chi-fb ${chimA2 === corr2 ? "ok" : "bad"}">
+              <div class="chi-fhd">${chimA2 === corr2 ? "\u2713 Correct\u00a0!" : "\u2717 Incorrect"}</div>
+              <div>${chimMix.xh}</div>
+            </div>
+            <button class="chi-next primary" id="chi-nr">
+              ${chimRound >= CHIM_ROUNDS ? "Voir mes r\u00e9sultats \uD83C\uDFC6" : "M\u00e9lange suivant \u2192"}
+            </button>` : ""}
+        </div>`;
+      }
+    }
+
+    content = `<div class="exp-zone">
+      <div class="beaker-area">
+        <div style="text-align:center">
+          <div style="font-size:2.2rem">${LM[chimSel[0]].em}</div>
+          <div style="font-size:.68rem;color:var(--t2);margin-top:5px">${LM[chimSel[0]].nm}</div>
+        </div>
+        ${beakerHtml(chimSel[0], chimSel[1], chimMix, chimAnimating)}
+        <div style="text-align:center">
+          <div style="font-size:2.2rem">${LM[chimSel[1]].em}</div>
+          <div style="font-size:.68rem;color:var(--t2);margin-top:5px">${LM[chimSel[1]].nm}</div>
+        </div>
+      </div>
+      ${qa}
+    </div>`;
+  }
+
+  return `<div class="lab"><div class="chilab">
+    <div class="chilab-bar">
+      <button class="gbtn" id="chi-home">\u2190 Accueil</button>
+      <span class="chilab-title">\uD83D\uDD2C Labo des M\u00e9langes</span>
+      <span class="chilab-score">\u2726 ${chimScore}</span>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">
+      <span style="font-family:'Space Mono',monospace;font-size:.72rem;color:var(--t2);white-space:nowrap">M\u00e9lange ${chimRound}/${CHIM_ROUNDS}</span>
+      <div class="pbar" style="flex:1;margin-bottom:0"><div class="pfill" style="width:${progressPct}%"></div></div>
+    </div>
+    ${content}
+  </div></div>`;
+}
+
+// ─── RENDER ─────────────────────────────────────────────
+function render() {
+  const app = document.getElementById("app");
+  app.innerHTML =
+    state.screen === "home"     ? htmlHome() :
+    state.screen === "physique" ? htmlPhy()  :
+    htmlChi();
+
+  const on = (id, fn) => { const el = document.getElementById(id); if (el) el.addEventListener("click", fn); };
+
+  on("go-phy",      goPhysique);
+  on("go-chi",      goChimie);
+  on("phy-home-top",goHome);
+  on("phy-home-res",goHome);
+  on("phy-restart", phyRestart);
+  on("phy-next",    phyNext);
+  on("chi-home",    goHome);
+  on("chi-home-res",goHome);
+  on("chi-restart", chimRestart);
+  on("chi-mix",     chimDoMix);
+  on("chi-nq",      chimGoNextQ);
+  on("chi-nr",      chimGoNextRound);
+
+  document.querySelectorAll(".cbtn[data-c]").forEach(b =>
+    b.addEventListener("click", () => phyChoose(b.dataset.c)));
+
+  document.querySelectorAll(".bottle[data-b]").forEach(b =>
+    b.addEventListener("click", () => { if (!b.classList.contains("dis")) chimToggleSel(b.dataset.b); }));
+
+  document.querySelectorAll("[data-cq]").forEach(b =>
+    b.addEventListener("click", () => chimAnswer(+b.dataset.cq, b.dataset.cv)));
+}
+
+render();
+</script>
+</body>
+</html>
