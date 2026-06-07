@@ -281,7 +281,7 @@ function chimToggleSel(id) {
 function chimDoMix() {
   Object.assign(state, {
     chimMix: getMix(state.chimSel[0], state.chimSel[1]),
-    chimA2: null,
+    chimA1: null, chimA2: null, chimQNum: 1,
     chimAnimating: true, chimPhase: "mixing"
   });
   render();
@@ -294,12 +294,20 @@ function chimDoMix() {
   }, 2400);
 }
 
-function chimAnswer(val) {
-  if (state.chimA2 !== null) return;
-  state.chimA2 = val;
-  if ((val === "Homog\u00e8ne") === state.chimMix.h) state.chimScore++;
+function chimAnswer(q, val) {
+  if (q === 1) {
+    if (state.chimA1 !== null) return;
+    state.chimA1 = val;
+    if ((val === "Miscible") === state.chimMix.m) state.chimScore++;
+  } else {
+    if (state.chimA2 !== null) return;
+    state.chimA2 = val;
+    if ((val === "Homog\u00e8ne") === state.chimMix.h) state.chimScore++;
+  }
   render();
 }
+
+function chimGoNextQ() { state.chimQNum = 2; render(); }
 
 function chimGoNextRound() {
   if (state.chimRound >= CHIM_ROUNDS) { state.chimDone = true; render(); return; }
@@ -426,10 +434,10 @@ function htmlPhy() {
 
 function htmlChi() {
   const {chimPhase, chimRound, chimScore, chimSel, chimMix,
-         chimAnimating, chimA2, chimDone} = state;
+         chimAnimating, chimQNum, chimA1, chimA2, chimDone} = state;
 
   if (chimDone) {
-    const total = CHIM_ROUNDS;
+    const total = CHIM_ROUNDS * 2;
     const pct = Math.round(chimScore / total * 100);
     const icon = chimScore === total ? "\uD83C\uDFC6" : chimScore >= total * .7 ? "\uD83E\uDDEA" : "\uD83D\uDCDA";
     return `<div class="lab"><div class="result">
@@ -474,26 +482,44 @@ function htmlChi() {
       ${mixBtn}`;
 
   } else {
-    const corr = chimMix.h ? "Homog\u00e8ne" : "H\u00e9t\u00e9rog\u00e8ne";
+    const corr1 = chimMix.m ? "Miscible" : "Non-miscible";
+    const corr2 = chimMix.h ? "Homog\u00e8ne" : "H\u00e9t\u00e9rog\u00e8ne";
     let qa = "";
 
     if (chimPhase === "quiz") {
-      const opts = ["Homog\u00e8ne", "H\u00e9t\u00e9rog\u00e8ne"].map(o => {
-        const cls = chimA2 === null ? "" : (o === corr ? " ok" : chimA2 === o ? " bad" : "");
-        return `<button class="chi-obtn${cls}" data-cv="${o}"${chimA2 !== null ? " disabled" : ""}>${o}</button>`;
-      }).join("");
-      qa = `<div class="chi-q">
-        <div class="chi-qlbl">\u2753 Ce m\u00e9lange est-il\u2026</div>
-        <div class="chi-opts">${opts}</div>
-        ${chimA2 !== null ? `
-          <div class="chi-fb ${chimA2 === corr ? "ok" : "bad"}">
-            <div class="chi-fhd">${chimA2 === corr ? "\u2713 Correct\u00a0!" : "\u2717 Incorrect"}</div>
-            <div>${chimMix.xh}</div>
-          </div>
-          <button class="chi-next primary" id="chi-nr">
-            ${chimRound >= CHIM_ROUNDS ? "Voir mes r\u00e9sultats \uD83C\uDFC6" : "M\u00e9lange suivant \u2192"}
-          </button>` : ""}
-      </div>`;
+      if (chimQNum === 1) {
+        const opts = ["Miscible", "Non-miscible"].map(o => {
+          const cls = chimA1 === null ? "" : (o === corr1 ? " ok" : chimA1 === o ? " bad" : "");
+          return `<button class="chi-obtn${cls}" data-cq="1" data-cv="${o}"${chimA1 !== null ? " disabled" : ""}>${o}</button>`;
+        }).join("");
+        qa = `<div class="chi-q">
+          <div class="chi-qlbl">\u2753 Ces liquides sont-ils\u2026</div>
+          <div class="chi-opts">${opts}</div>
+          ${chimA1 !== null ? `
+            <div class="chi-fb ${chimA1 === corr1 ? "ok" : "bad"}">
+              <div class="chi-fhd">${chimA1 === corr1 ? "\u2713 Correct\u00a0!" : "\u2717 Incorrect"}</div>
+              <div>${chimMix.xm}</div>
+            </div>
+            <button class="chi-next secondary" id="chi-nq">Question suivante \u2192</button>` : ""}
+        </div>`;
+      } else {
+        const opts = ["Homog\u00e8ne", "H\u00e9t\u00e9rog\u00e8ne"].map(o => {
+          const cls = chimA2 === null ? "" : (o === corr2 ? " ok" : chimA2 === o ? " bad" : "");
+          return `<button class="chi-obtn${cls}" data-cq="2" data-cv="${o}"${chimA2 !== null ? " disabled" : ""}>${o}</button>`;
+        }).join("");
+        qa = `<div class="chi-q">
+          <div class="chi-qlbl">\u2753 Ce m\u00e9lange est-il\u2026</div>
+          <div class="chi-opts">${opts}</div>
+          ${chimA2 !== null ? `
+            <div class="chi-fb ${chimA2 === corr2 ? "ok" : "bad"}">
+              <div class="chi-fhd">${chimA2 === corr2 ? "\u2713 Correct\u00a0!" : "\u2717 Incorrect"}</div>
+              <div>${chimMix.xh}</div>
+            </div>
+            <button class="chi-next primary" id="chi-nr">
+              ${chimRound >= CHIM_ROUNDS ? "Voir mes r\u00e9sultats \uD83C\uDFC6" : "M\u00e9lange suivant \u2192"}
+            </button>` : ""}
+        </div>`;
+      }
     }
 
     content = `<div class="exp-zone">
@@ -546,6 +572,7 @@ function render() {
   on("chi-home-res",goHome);
   on("chi-restart", chimRestart);
   on("chi-mix",     chimDoMix);
+  on("chi-nq",      chimGoNextQ);
   on("chi-nr",      chimGoNextRound);
 
   document.querySelectorAll(".cbtn[data-c]").forEach(b =>
@@ -554,8 +581,8 @@ function render() {
   document.querySelectorAll(".bottle[data-b]").forEach(b =>
     b.addEventListener("click", () => { if (!b.classList.contains("dis")) chimToggleSel(b.dataset.b); }));
 
-  document.querySelectorAll("[data-cv]").forEach(b =>
-    b.addEventListener("click", () => chimAnswer(b.dataset.cv)));
+  document.querySelectorAll("[data-cq]").forEach(b =>
+    b.addEventListener("click", () => chimAnswer(+b.dataset.cq, b.dataset.cv)));
 }
 
 render();
