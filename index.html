@@ -281,7 +281,7 @@ function chimToggleSel(id) {
 function chimDoMix() {
   Object.assign(state, {
     chimMix: getMix(state.chimSel[0], state.chimSel[1]),
-    chimA1: null, chimA2: null, chimQNum: 1,
+    chimA2: null,
     chimAnimating: true, chimPhase: "mixing"
   });
   render();
@@ -294,20 +294,12 @@ function chimDoMix() {
   }, 2400);
 }
 
-function chimAnswer(q, val) {
-  if (q === 1) {
-    if (state.chimA1 !== null) return;
-    state.chimA1 = val;
-    if ((val === "Miscible") === state.chimMix.m) state.chimScore++;
-  } else {
-    if (state.chimA2 !== null) return;
-    state.chimA2 = val;
-    if ((val === "Homog\u00e8ne") === state.chimMix.h) state.chimScore++;
-  }
+function chimAnswer(val) {
+  if (state.chimA2 !== null) return;
+  state.chimA2 = val;
+  if ((val === "Homog\u00e8ne") === state.chimMix.h) state.chimScore++;
   render();
 }
-
-function chimGoNextQ() { state.chimQNum = 2; render(); }
 
 function chimGoNextRound() {
   if (state.chimRound >= CHIM_ROUNDS) { state.chimDone = true; render(); return; }
@@ -332,22 +324,28 @@ function beakerHtml(id1, id2, mix, anim) {
   let liq = "";
   if (anim) {
     liq = `<div class="bl bl-single" style="background:linear-gradient(135deg,${l1.col},${l2.col});opacity:.6"></div>`;
-  } else if (mix.m) {
-    const bubbles = [0,1,2].map(i =>
-      `<div class="b-bubble" style="width:${4+i*2}px;height:${4+i*2}px;left:${18+i*28}%;bottom:${8+i*10}%;--d:${1+i*.4}s;--delay:${i*.35}s"></div>`
+  } else if (mix.m && mix.h) {
+    // Miscible + Homogène → couleur uniforme, pas de bulles
+    liq = `<div class="bl bl-single" style="background:${blended};opacity:.88"></div>`;
+  } else if (mix.m && !mix.h) {
+    // Miscible + Hétérogène (émulsion) → couleur uniforme + particules en suspension
+    const bubbles = [0,1,2,3].map(i =>
+      `<div class="b-bubble" style="width:${3+i*2}px;height:${3+i*2}px;left:${10+i*24}%;bottom:${6+i*11}%;--d:${.85+i*.3}s;--delay:${i*.25}s"></div>`
     ).join("");
     liq = `<div class="bl bl-single" style="background:${blended};opacity:.88"></div>${bubbles}`;
   } else {
+    // Non-miscible → 2 couches distinctes
     liq = `<div class="bl bl-bot" style="background:${bot.col};opacity:.9"></div>`
         + `<div class="bl bl-top" style="background:${top.col};opacity:.85;bottom:46%"></div>`
         + `<div class="bl-sep" style="bottom:46%"></div>`;
   }
 
+  // Étiquette neutre — pas de "Miscible/Non-miscible" pour que l'élève observe lui-même
   const lbl = anim
     ? `<div class="beaker-lbl" style="color:var(--cyan)">\u2697\uFE0F Agitation\u2026</div>`
     : mix.m
-      ? `<div class="beaker-lbl"><span style="color:var(--t)">${l1.nm} + ${l2.nm}</span><br><span class="btag btag-m">Miscible \u2713</span></div>`
-      : `<div class="beaker-lbl"><span style="display:block;color:var(--t);font-size:.6rem">${top.nm} \u2191</span><span style="display:block;color:var(--t);font-size:.6rem">${bot.nm} \u2193</span><span class="btag btag-nm">Non-miscible</span></div>`;
+      ? `<div class="beaker-lbl"><span style="color:var(--t)">${l1.nm} + ${l2.nm}</span></div>`
+      : `<div class="beaker-lbl"><span style="display:block;color:var(--t);font-size:.6rem">${top.nm} \u2191</span><span style="display:block;color:var(--t);font-size:.6rem">${bot.nm} \u2193</span></div>`;
 
   return `<div class="beaker-wrap"><div class="beaker${anim ? " shaking" : ""}">${liq}</div>${lbl}</div>`;
 }
@@ -428,10 +426,10 @@ function htmlPhy() {
 
 function htmlChi() {
   const {chimPhase, chimRound, chimScore, chimSel, chimMix,
-         chimAnimating, chimQNum, chimA1, chimA2, chimDone} = state;
+         chimAnimating, chimA2, chimDone} = state;
 
   if (chimDone) {
-    const total = CHIM_ROUNDS * 2;
+    const total = CHIM_ROUNDS;
     const pct = Math.round(chimScore / total * 100);
     const icon = chimScore === total ? "\uD83C\uDFC6" : chimScore >= total * .7 ? "\uD83E\uDDEA" : "\uD83D\uDCDA";
     return `<div class="lab"><div class="result">
@@ -476,44 +474,26 @@ function htmlChi() {
       ${mixBtn}`;
 
   } else {
-    const corr1 = chimMix.m ? "Miscible" : "Non-miscible";
-    const corr2 = chimMix.h ? "Homog\u00e8ne" : "H\u00e9t\u00e9rog\u00e8ne";
+    const corr = chimMix.h ? "Homog\u00e8ne" : "H\u00e9t\u00e9rog\u00e8ne";
     let qa = "";
 
     if (chimPhase === "quiz") {
-      if (chimQNum === 1) {
-        const opts = ["Miscible", "Non-miscible"].map(o => {
-          const cls = chimA1 === null ? "" : (o === corr1 ? " ok" : chimA1 === o ? " bad" : "");
-          return `<button class="chi-obtn${cls}" data-cq="1" data-cv="${o}"${chimA1 !== null ? " disabled" : ""}>${o}</button>`;
-        }).join("");
-        qa = `<div class="chi-q">
-          <div class="chi-qlbl">\u2753 Question 1\u00a0: Ces liquides sont-ils\u2026</div>
-          <div class="chi-opts">${opts}</div>
-          ${chimA1 !== null ? `
-            <div class="chi-fb ${chimA1 === corr1 ? "ok" : "bad"}">
-              <div class="chi-fhd">${chimA1 === corr1 ? "\u2713 Correct\u00a0!" : "\u2717 Incorrect"}</div>
-              <div>${chimMix.xm}</div>
-            </div>
-            <button class="chi-next secondary" id="chi-nq">Question suivante \u2192</button>` : ""}
-        </div>`;
-      } else {
-        const opts = ["Homog\u00e8ne", "H\u00e9t\u00e9rog\u00e8ne"].map(o => {
-          const cls = chimA2 === null ? "" : (o === corr2 ? " ok" : chimA2 === o ? " bad" : "");
-          return `<button class="chi-obtn${cls}" data-cq="2" data-cv="${o}"${chimA2 !== null ? " disabled" : ""}>${o}</button>`;
-        }).join("");
-        qa = `<div class="chi-q">
-          <div class="chi-qlbl">\u2753 Question 2\u00a0: Le m\u00e9lange obtenu est-il\u2026</div>
-          <div class="chi-opts">${opts}</div>
-          ${chimA2 !== null ? `
-            <div class="chi-fb ${chimA2 === corr2 ? "ok" : "bad"}">
-              <div class="chi-fhd">${chimA2 === corr2 ? "\u2713 Correct\u00a0!" : "\u2717 Incorrect"}</div>
-              <div>${chimMix.xh}</div>
-            </div>
-            <button class="chi-next primary" id="chi-nr">
-              ${chimRound >= CHIM_ROUNDS ? "Voir mes r\u00e9sultats \uD83C\uDFC6" : "M\u00e9lange suivant \u2192"}
-            </button>` : ""}
-        </div>`;
-      }
+      const opts = ["Homog\u00e8ne", "H\u00e9t\u00e9rog\u00e8ne"].map(o => {
+        const cls = chimA2 === null ? "" : (o === corr ? " ok" : chimA2 === o ? " bad" : "");
+        return `<button class="chi-obtn${cls}" data-cv="${o}"${chimA2 !== null ? " disabled" : ""}>${o}</button>`;
+      }).join("");
+      qa = `<div class="chi-q">
+        <div class="chi-qlbl">\u2753 Ce m\u00e9lange est-il\u2026</div>
+        <div class="chi-opts">${opts}</div>
+        ${chimA2 !== null ? `
+          <div class="chi-fb ${chimA2 === corr ? "ok" : "bad"}">
+            <div class="chi-fhd">${chimA2 === corr ? "\u2713 Correct\u00a0!" : "\u2717 Incorrect"}</div>
+            <div>${chimMix.xh}</div>
+          </div>
+          <button class="chi-next primary" id="chi-nr">
+            ${chimRound >= CHIM_ROUNDS ? "Voir mes r\u00e9sultats \uD83C\uDFC6" : "M\u00e9lange suivant \u2192"}
+          </button>` : ""}
+      </div>`;
     }
 
     content = `<div class="exp-zone">
@@ -566,7 +546,6 @@ function render() {
   on("chi-home-res",goHome);
   on("chi-restart", chimRestart);
   on("chi-mix",     chimDoMix);
-  on("chi-nq",      chimGoNextQ);
   on("chi-nr",      chimGoNextRound);
 
   document.querySelectorAll(".cbtn[data-c]").forEach(b =>
@@ -575,8 +554,8 @@ function render() {
   document.querySelectorAll(".bottle[data-b]").forEach(b =>
     b.addEventListener("click", () => { if (!b.classList.contains("dis")) chimToggleSel(b.dataset.b); }));
 
-  document.querySelectorAll("[data-cq]").forEach(b =>
-    b.addEventListener("click", () => chimAnswer(+b.dataset.cq, b.dataset.cv)));
+  document.querySelectorAll("[data-cv]").forEach(b =>
+    b.addEventListener("click", () => chimAnswer(b.dataset.cv)));
 }
 
 render();
